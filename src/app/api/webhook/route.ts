@@ -46,6 +46,19 @@ export async function POST(request: NextRequest) {
           data: { nextIndex: 0 },
         });
       }
+    } else if (eventType === 'clear_data') {
+      // Delete all lead assignments, leads, reset provider stats & allocation indices, and clear processed webhook events
+      await prisma.$transaction([
+        prisma.leadAssignment.deleteMany({}),
+        prisma.lead.deleteMany({}),
+        prisma.provider.updateMany({
+          data: { leadsReceivedCount: 0, monthlyQuota: 10 },
+        }),
+        prisma.allocationState.updateMany({
+          data: { nextIndex: 0 },
+        }),
+        prisma.webhookEvent.deleteMany({}),
+      ]);
     } else {
       return NextResponse.json(
         { success: false, error: 'Unknown event type' },
@@ -69,9 +82,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: providerId
-        ? `Quota reset for Provider ${providerId}`
-        : 'All provider quotas reset to 10',
+      message: eventType === 'clear_data'
+        ? 'All lead data cleared and provider stats reset to 0'
+        : (providerId ? `Quota reset for Provider ${providerId}` : 'All provider quotas reset to 10'),
       alreadyProcessed: false,
     });
   } catch (error) {

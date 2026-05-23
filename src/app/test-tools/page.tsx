@@ -50,6 +50,7 @@ function randomName() {
 export default function TestToolsPage() {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [loadingReset, setLoadingReset] = useState(false);
+  const [loadingClear, setLoadingClear] = useState(false);
   const [loadingConcurrency, setLoadingConcurrency] = useState(false);
   const [webhookCallCount, setWebhookCallCount] = useState(0);
   const [idempotencyEventId, setIdempotencyEventId] = useState('');
@@ -92,6 +93,33 @@ export default function TestToolsPage() {
       addLog('error', 'Network error during webhook call');
     } finally {
       setLoadingReset(false);
+    }
+  };
+
+  // 1b. Clear all leads and reset quotas
+  const handleClearData = async () => {
+    if (!confirm('Are you sure you want to delete all leads, assignments, and reset all quotas? This cannot be undone.')) {
+      return;
+    }
+    setLoadingClear(true);
+    addLog('info', 'Sending request to clear all lead data and reset quotas...');
+    try {
+      const eventId = uuidv4();
+      const res = await fetch('/api/webhook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId, eventType: 'clear_data' }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        addLog('success', data.message, `eventId: ${eventId.slice(0, 8)}…`);
+      } else {
+        addLog('error', data.error || 'Request failed');
+      }
+    } catch {
+      addLog('error', 'Network error during database cleanup request');
+    } finally {
+      setLoadingClear(false);
     }
   };
 
@@ -251,6 +279,30 @@ export default function TestToolsPage() {
                 disabled={loadingReset}
               >
                 {loadingReset ? 'Resetting…' : 'Reset All Quotas → 10'}
+              </button>
+            </div>
+
+            {/* Clear All Lead Data */}
+            <div className="glass rounded-2xl border border-white/[0.06] p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h2 className="text-sm font-semibold text-white">Clear All Lead Data</h2>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Deletes all leads, assignments, and resets provider quotas/allocation states to start completely fresh.
+                  </p>
+                </div>
+                <span className="tag tag-red">Database</span>
+              </div>
+              <div className="glass-light rounded-lg p-3 mb-4 text-xs font-mono text-slate-400 space-y-0.5">
+                <div><span className="text-slate-600">POST</span> /api/webhook</div>
+                <div><span className="text-slate-600">body:</span> {'{'}  eventType: &quot;clear_data&quot; {'}'}</div>
+              </div>
+              <button
+                className="btn-danger w-full text-sm"
+                onClick={handleClearData}
+                disabled={loadingClear}
+              >
+                {loadingClear ? 'Clearing…' : 'Clear All Leads & Reset Quotas'}
               </button>
             </div>
 
