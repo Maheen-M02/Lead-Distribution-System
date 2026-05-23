@@ -146,7 +146,12 @@ export default function DashboardPage() {
   useEffect(() => {
     fetchData();
 
-    // Connect to SSE
+    // Poll every 5 seconds as reliable fallback
+    // (Vercel serverless functions don't share memory, so SSE broadcasts
+    //  from one function instance won't reach clients connected to another)
+    const pollInterval = setInterval(fetchData, 5000);
+
+    // Connect to SSE for instant updates when running locally
     const eventSource = new EventSource('/api/sse');
 
     eventSource.addEventListener('connected', () => {
@@ -172,6 +177,7 @@ export default function DashboardPage() {
     };
 
     return () => {
+      clearInterval(pollInterval);
       eventSource.close();
     };
   }, [fetchData]);
