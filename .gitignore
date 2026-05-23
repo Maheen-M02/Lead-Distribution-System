@@ -30,3 +30,6 @@ Thumbs.db
 
 # VS Code settings
 .vscode/
+
+.vercel
+.env*.local
