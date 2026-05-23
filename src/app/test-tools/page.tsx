@@ -243,7 +243,7 @@ export default function TestToolsPage() {
               </div>
               <div className="glass-light rounded-lg p-3 mb-4 text-xs font-mono text-slate-400 space-y-0.5">
                 <div><span className="text-slate-600">POST</span> /api/webhook</div>
-                <div><span className="text-slate-600">body:</span> {'{'} eventType: "quota_reset" {'}'}</div>
+                <div><span className="text-slate-600">body:</span> {'{'}  eventType: &quot;quota_reset&quot; {'}'}</div>
               </div>
               <button
                 className="btn-primary w-full text-sm"
