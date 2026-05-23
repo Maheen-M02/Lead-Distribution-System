@@ -39,7 +39,7 @@ async function runAllocationTransaction(leadId: string, serviceId: number): Prom
       const mandatoryProviderIds = MANDATORY_ASSIGNMENTS[serviceId] || [];
       const pool = ALLOCATION_POOLS[serviceId] || [];
       const remainingSlots = TOTAL_ASSIGNMENTS_PER_LEAD - mandatoryProviderIds.length;
-      const allProviderIds = [...new Set([...mandatoryProviderIds, ...pool])];
+      const allProviderIds = Array.from(new Set([...mandatoryProviderIds, ...pool]));
 
       // SELECT FOR UPDATE on all relevant provider rows.
       // Concurrent transactions WAIT (queue) on these locks instead of
@@ -110,7 +110,7 @@ async function runAllocationTransaction(leadId: string, serviceId: number): Prom
         });
       }
 
-      const finalAssignments = [...new Set([...validMandatory, ...selectedPool])].slice(
+      const finalAssignments = Array.from(new Set([...validMandatory, ...selectedPool])).slice(
         0,
         TOTAL_ASSIGNMENTS_PER_LEAD
       );
